@@ -22,7 +22,7 @@ hdhomerun device 1322f2f9 found at 192.168.174.249
  10     KTEH                    http://192.168.174.249:5004/auto/v10
  ```
  
- # Getting started
+# Getting started
 ```
 
 # Clone the repo
