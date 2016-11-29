@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -25,11 +28,11 @@ func main() {
 			},
 		},
 		{
-			Name:    "complete",
+			Name:    "channels",
 			Aliases: []string{"c"},
-			Usage:   "complete a task on the list",
+			Usage:   "Print out list of channels",
 			Action: func(c *cli.Context) error {
-				fmt.Println("completed task: ", c.Args().First())
+				getChannels()
 				return nil
 			},
 		},
@@ -38,7 +41,7 @@ func main() {
 	app.Run(os.Args)
 }
 
-func discoverHDHR() {
+func discoverHDHR() string {
 	// The discovery binary was discovered via tcpdump
 	const discovery_bin = ("\x00\x02\x00\x0c\x01\x04\x00\x00\x00\x01" +
 		"\x02\x04\xff\xff\xff\xff\x4e\x50\x7f\x35")
@@ -65,10 +68,31 @@ func discoverHDHR() {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
-		break
+		return hdhr_ip
 	}
 }
 
 func getChannels() {
-	fmt.Println("http://<device ip>/lineup.json")
+	hdhr_ip := discoverHDHR()
+
+	lineup_url := "http://%s/lineup.json"
+	resp, _ := http.Get(fmt.Sprintf(lineup_url, hdhr_ip))
+
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	type Channel struct {
+		GuideNumber string
+		GuideName   string
+		URL         string
+	}
+
+	var channels []Channel
+
+	_ = json.Unmarshal(body, &channels)
+
+	row := "%3s\t%s\t\n"
+	for _, ch := range channels {
+		fmt.Printf(row, ch.GuideNumber, ch.GuideName)
+	}
 }
