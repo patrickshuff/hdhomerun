@@ -49,15 +49,24 @@ func discoverHDHR() string {
 	// Setup socket that is going to send/receive discovery datagrams
 	RAddr, _ := net.ResolveUDPAddr("udp", "192.168.174.255:65001")
 	ServerAddr, _ := net.ResolveUDPAddr("udp", "192.168.174.168:")
-	listen_conn, _ := net.ListenUDP("udp", ServerAddr)
+	listen_conn, err := net.ListenUDP("udp", ServerAddr)
+
+	if err != nil {
+		fmt.Println("Error opening UDP socket: ", err)
+		return ""
+	}
 
 	listen_conn.WriteTo([]byte(discovery_bin), RAddr)
 
-	// Listen for a response
+	// Grab response for a buffer
 	buf := make([]byte, 1024)
 	for {
 		_, addr, err := listen_conn.ReadFromUDP(buf)
 
+		if err != nil {
+			fmt.Println("Error reading from UDP socket: ", err)
+		}
+		return ""
 		msg := "hdhomerun device %x found at %s\n"
 		// e.g. "hdhomerun device 1322F2F9 found at 192.168.174.249"
 		hdhr_ip := strings.Split(addr.String(), ":")[0]
@@ -65,9 +74,6 @@ func discoverHDHR() string {
 
 		fmt.Printf(msg, hdhr_dev_name, hdhr_ip)
 
-		if err != nil {
-			fmt.Println("Error: ", err)
-		}
 		return hdhr_ip
 	}
 }
@@ -76,7 +82,12 @@ func getChannels() {
 	hdhr_ip := discoverHDHR()
 
 	lineup_url := "http://%s/lineup.json"
-	resp, _ := http.Get(fmt.Sprintf(lineup_url, hdhr_ip))
+	resp, err := http.Get(fmt.Sprintf(lineup_url, hdhr_ip))
+
+	if err != nil {
+		fmt.Println("Error downloading lineup JSON: ", err)
+		return
+	}
 
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -89,7 +100,10 @@ func getChannels() {
 
 	var channels []Channel
 
-	_ = json.Unmarshal(body, &channels)
+	err = json.Unmarshal(body, &channels)
+	if err != nil {
+		fmt.Println("Error decoding JSON: ", err)
+	}
 
 	row := "%3s\t%-20s\t%s\n"
 	for _, ch := range channels {
