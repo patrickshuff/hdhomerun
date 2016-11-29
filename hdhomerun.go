@@ -65,8 +65,9 @@ func discoverHDHR() string {
 
 		if err != nil {
 			fmt.Println("Error reading from UDP socket: ", err)
+			return ""
 		}
-		return ""
+
 		msg := "hdhomerun device %x found at %s\n"
 		// e.g. "hdhomerun device 1322F2F9 found at 192.168.174.249"
 		hdhr_ip := strings.Split(addr.String(), ":")[0]
