@@ -4,7 +4,6 @@ import "bytes"
 import "fmt"
 import "log"
 import "net"
-import "strconv"
 
 var source_port int = 4321
 
@@ -24,37 +23,30 @@ func main() {
 
 func sendUDPProbes() {
 	const discovery_bin = "\x00\x02\x00\x0c\x01\x04\x00\x00\x00\x01\x02\x04\xff\xff\xff\xff\x4e\x50\x7f\x35"
-	fmt.Println("Sending out discovery probes...")
 
-	// Set up our discover UDP socket
-	LAddr,_ := net.ResolveUDPAddr("udp",fmt.Sprintf(":%s", strconv.Itoa(source_port)))
+
+	// Setup socket that is going to send/receive discovery datagrams
 	RAddr,_ := net.ResolveUDPAddr("udp","192.168.174.255:65001")
-	probe_conn, _ := net.DialUDP("udp", LAddr, RAddr)
+	ServerAddr, _ := net.ResolveUDPAddr("udp","192.168.174.168:4322")
+	listen_conn, _ := net.ListenUDP("udp", ServerAddr)
 
-	fmt.Println("Source: ", probe_conn.LocalAddr())
-	fmt.Println("Dest: ", probe_conn.RemoteAddr())
-
-	// Setup socket that is going to receive the response
-	ServerAddr, _ := net.ResolveUDPAddr("udp","192.168.174.168:4321")
-	listen_conn, err := net.ListenUDP("udp", ServerAddr)
-
-	fmt.Println(ServerAddr)
-	fmt.Println(err)
 	// fmt.Println("Listening on: ", listen_conn.LocalAddr())
 	
-	
-	// Write the discovery bytes to UDP socket
-	fmt.Fprintf(probe_conn, discovery_bin)
+	listen_conn.WriteTo([]byte(discovery_bin), RAddr)
 
 	// Listen for a response
 	buf := make([]byte, 1024)
 	for {
-		n,addr,err := listen_conn.ReadFromUDP(buf)
-		fmt.Println("Received ",string(buf[0:n]), " from ",addr)
+		_,addr,err := listen_conn.ReadFromUDP(buf)
+		// msg := "hdhomerun device 1322F2F9 found at 192.168.174.249"
+		msg := "hdhomerun device %x found at %s"
+		// fmt.Println("Received ",string(buf[40:n]), " from ", addr)
+		fmt.Printf(msg, buf[12:16], addr)
 		
 		if err != nil {
 			fmt.Println("Error: ",err)
-		} 
+		}
+		break
 	}
 }
 
