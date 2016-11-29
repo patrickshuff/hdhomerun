@@ -1,25 +1,11 @@
 package main
 
-import "bytes"
 import "fmt"
-import "log"
 import "strings"
 import "net"
 
-var source_port int = 4321
-
 func main() {
-	var buf bytes.Buffer
-	logger := log.New(&buf, "logger: ", log.Lshortfile)
-	// bufio.NewWriter(conn).WriteString(discovery_bin)
-	// conn.WriteToUDP(discovery_bin)
-
-	// status, err := bufio.NewReader(conn2).ReadByte()
-	logger.Print("Hello, log file!")
-
 	sendUDPProbes()
-	//startUDPServer()
-	
 }
 
 func sendUDPProbes() {
@@ -30,7 +16,7 @@ func sendUDPProbes() {
 
 	// Setup socket that is going to send/receive discovery datagrams
 	RAddr,_ := net.ResolveUDPAddr("udp","192.168.174.255:65001")
-	ServerAddr, _ := net.ResolveUDPAddr("udp","192.168.174.168:4322")
+	ServerAddr, _ := net.ResolveUDPAddr("udp","192.168.174.168:")
 	listen_conn, _ := net.ListenUDP("udp", ServerAddr)
 
 	listen_conn.WriteTo([]byte(discovery_bin), RAddr)
