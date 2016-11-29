@@ -36,6 +36,15 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:    "scanchannels",
+			Aliases: []string{"c"},
+			Usage:   "Force HDHR to rescan for new channels",
+			Action: func(c *cli.Context) error {
+				scanChannels()
+				return nil
+			},
+		},
 	}
 
 	app.Run(os.Args)
@@ -110,4 +119,17 @@ func getChannels() {
 	for _, ch := range channels {
 		fmt.Printf(row, ch.GuideNumber, ch.GuideName, ch.URL)
 	}
+}
+
+func scanChannels() {
+	scan_url := "http://%s/lineup.post?scan=start&source=Cable"
+	status_url := "http://%s/lineup.html\n"
+	hdhr_ip := discoverHDHR()
+	_, err := http.Get(fmt.Sprintf(scan_url, hdhr_ip))
+	if err != nil {
+		fmt.Println("Error issues rescan command: ", err)
+		return
+	}
+	fmt.Println("Success! Go here to see status:")
+	fmt.Printf(status_url, hdhr_ip)
 }
