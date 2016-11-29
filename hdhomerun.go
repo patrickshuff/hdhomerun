@@ -91,8 +91,8 @@ func getChannels() {
 
 	_ = json.Unmarshal(body, &channels)
 
-	row := "%3s\t%s\t\n"
+	row := "%3s\t%-20s\t%s\n"
 	for _, ch := range channels {
-		fmt.Printf(row, ch.GuideNumber, ch.GuideName)
+		fmt.Printf(row, ch.GuideNumber, ch.GuideName, ch.URL)
 	}
 }
