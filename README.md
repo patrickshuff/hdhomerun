@@ -24,7 +24,6 @@ hdhomerun device 1322f2f9 found at 192.168.174.249
  
 # Getting started
 ```
-
 # Clone the repo
 git clone https://github.com/patrickshuff/hdhomerun.git
 
